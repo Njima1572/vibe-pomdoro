@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Pomodoro Timer - A beautiful focus timer synchronized with your Mac menu bar">
+    <title>Pomodoro Timer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app" id="app">
+        <!-- Ambient background effects -->
+        <div class="ambient-bg">
+            <div class="ambient-orb ambient-orb-1"></div>
+            <div class="ambient-orb ambient-orb-2"></div>
+            <div class="ambient-orb ambient-orb-3"></div>
+        </div>
+
+        <!-- Connection status -->
+        <div class="connection-status" id="connectionStatus">
+            <span class="status-dot"></span>
+            <span class="status-text">Connecting...</span>
+        </div>
+
+        <!-- Main content -->
+        <main class="main-content">
+            <!-- Phase indicator -->
+            <div class="phase-indicator" id="phaseIndicator">
+                <span class="phase-emoji" id="phaseEmoji">🍅</span>
+                <span class="phase-name" id="phaseName">Ready</span>
+                <span class="phase-badge" id="phaseBadge"></span>
+            </div>
+
+            <!-- Timer ring -->
+            <div class="timer-container" id="timerContainer">
+                <svg class="timer-ring" viewBox="0 0 200 200">
+                    <defs>
+                        <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" id="gradientStop1" style="stop-color: #ff6b6b" />
+                            <stop offset="100%" id="gradientStop2" style="stop-color: #ee5a24" />
+                        </linearGradient>
+                        <filter id="glow">
+                            <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                            <feMerge>
+                                <feMergeNode in="coloredBlur" />
+                                <feMergeNode in="SourceGraphic" />
+                            </feMerge>
+                        </filter>
+                    </defs>
+                    <!-- Background ring -->
+                    <circle class="ring-bg" cx="100" cy="100" r="88" />
+                    <!-- Progress ring -->
+                    <circle class="ring-progress" id="ringProgress" cx="100" cy="100" r="88"
+                        stroke="url(#progressGradient)" filter="url(#glow)" />
+                </svg>
+
+                <div class="timer-display">
+                    <div class="timer-time" id="timerTime">25:00</div>
+                    <div class="timer-subtitle" id="timerSubtitle">Press play to start</div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button class="control-btn control-btn-secondary" id="resetBtn" title="Reset" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                        <path d="M3 3v5h5" />
+                    </svg>
+                </button>
+
+                <button class="control-btn control-btn-primary" id="playPauseBtn" title="Start">
+                    <svg class="icon-play" id="iconPlay" viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="6,3 20,12 6,21" />
+                    </svg>
+                    <svg class="icon-pause" id="iconPause" viewBox="0 0 24 24" fill="currentColor" style="display:none">
+                        <rect x="5" y="3" width="4" height="18" rx="1" />
+                        <rect x="15" y="3" width="4" height="18" rx="1" />
+                    </svg>
+                </button>
+
+                <button class="control-btn control-btn-secondary" id="skipBtn" title="Skip" disabled>
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="5,3 15,12 5,21" />
+                        <rect x="16" y="3" width="3" height="18" rx="1" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Session progress -->
+            <div class="session-progress" id="sessionProgress">
+                <div class="session-dots" id="sessionDots"></div>
+                <div class="session-label" id="sessionLabel">0 sessions completed</div>
+            </div>
+        </main>
+
+        <!-- Settings panel toggle -->
+        <button class="settings-toggle" id="settingsToggle" title="Settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <path
+                    d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+            </svg>
+        </button>
+
+        <!-- Settings panel -->
+        <div class="settings-panel" id="settingsPanel">
+            <div class="settings-header">
+                <h2>Settings</h2>
+                <button class="settings-close" id="settingsClose">✕</button>
+            </div>
+            <div class="settings-content">
+                <div class="setting-group">
+                    <label class="setting-label">
+                        <span class="setting-icon">🔥</span>
+                        Focus Duration
+                        <span class="setting-value" id="workDurationValue">25 min</span>
+                    </label>
+                    <input type="range" class="setting-range" id="workDuration" min="1" max="60" value="25">
+                </div>
+
+                <div class="setting-group">
+                    <label class="setting-label">
+                        <span class="setting-icon">☕</span>
+                        Short Break
+                        <span class="setting-value" id="shortBreakValue">5 min</span>
+                    </label>
+                    <input type="range" class="setting-range" id="shortBreakDuration" min="1" max="15" value="5">
+                </div>
+
+                <div class="setting-group">
+                    <label class="setting-label">
+                        <span class="setting-icon">🌿</span>
+                        Long Break
+                        <span class="setting-value" id="longBreakValue">15 min</span>
+                    </label>
+                    <input type="range" class="setting-range" id="longBreakDuration" min="5" max="30" value="15">
+                </div>
+
+                <div class="setting-group">
+                    <label class="setting-label">
+                        <span class="setting-icon">🔁</span>
+                        Sessions until long break
+                        <span class="setting-value" id="pomodorosValue">4</span>
+                    </label>
+                    <input type="range" class="setting-range" id="pomodorosUntilLongBreak" min="2" max="8" value="4">
+                </div>
+
+                <div class="setting-group">
+                    <label class="setting-toggle-label">
+                        <span>Auto-start breaks</span>
+                        <input type="checkbox" class="setting-checkbox" id="autoStartBreaks" checked>
+                        <span class="toggle-switch"></span>
+                    </label>
+                </div>
+
+                <div class="setting-group">
+                    <label class="setting-toggle-label">
+                        <span>Auto-start focus sessions</span>
+                        <input type="checkbox" class="setting-checkbox" id="autoStartPomodoros">
+                        <span class="toggle-switch"></span>
+                    </label>
+                </div>
+
+                <div class="setting-group-header">Alerts</div>
+
+                <div class="setting-group">
+                    <label class="setting-toggle-label">
+                        <span>🔔 Sound</span>
+                        <input type="checkbox" class="setting-checkbox" id="playSoundAlert" checked>
+                        <span class="toggle-switch"></span>
+                    </label>
+                </div>
+
+                <div class="setting-group">
+                    <label class="setting-toggle-label">
+                        <span>💬 Notification banner</span>
+                        <input type="checkbox" class="setting-checkbox" id="showNotificationAlert" checked>
+                        <span class="toggle-switch"></span>
+                    </label>
+                </div>
+
+                <div class="setting-group">
+                    <label class="setting-toggle-label">
+                        <span>🖥️ Full-screen overlay</span>
+                        <input type="checkbox" class="setting-checkbox" id="showFullScreenAlert" checked>
+                        <span class="toggle-switch"></span>
+                    </label>
+                </div>
+
+                <div class="setting-group-header">Shortcuts</div>
+
+                <div class="setting-group">
+                    <label class="setting-toggle-label">
+                        <span>⌨️ Global keyboard shortcuts</span>
+                        <input type="checkbox" class="setting-checkbox" id="globalShortcutsEnabled" checked>
+                        <span class="toggle-switch"></span>
+                    </label>
+                </div>
+
+                <button class="settings-apply-btn" id="applySettings">Apply Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

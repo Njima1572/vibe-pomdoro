@@ -1,0 +1,156 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="50%" style="stop-color:#16213e"/>
+      <stop offset="100%" style="stop-color:#0f0f23"/>
+    </linearGradient>
+
+    <!-- Tomato gradient -->
+    <radialGradient id="tomatoGrad" cx="45%" cy="40%" r="55%">
+      <stop offset="0%" style="stop-color:#ff7675"/>
+      <stop offset="40%" style="stop-color:#e74c3c"/>
+      <stop offset="75%" style="stop-color:#c0392b"/>
+      <stop offset="100%" style="stop-color:#962d22"/>
+    </radialGradient>
+
+    <!-- Tomato highlight -->
+    <radialGradient id="tomatoHighlight" cx="35%" cy="30%" r="35%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0.35)"/>
+      <stop offset="100%" style="stop-color:rgba(255,255,255,0)"/>
+    </radialGradient>
+
+    <!-- Glow behind tomato -->
+    <radialGradient id="glowGrad" cx="50%" cy="50%" r="45%">
+      <stop offset="0%" style="stop-color:rgba(231,76,60,0.4)"/>
+      <stop offset="60%" style="stop-color:rgba(231,76,60,0.1)"/>
+      <stop offset="100%" style="stop-color:rgba(231,76,60,0)"/>
+    </radialGradient>
+
+    <!-- Leaf gradient -->
+    <linearGradient id="leafGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#27ae60"/>
+      <stop offset="100%" style="stop-color:#2ecc71"/>
+    </linearGradient>
+
+    <!-- Stem gradient -->
+    <linearGradient id="stemGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#27ae60"/>
+      <stop offset="100%" style="stop-color:#1e8449"/>
+    </linearGradient>
+
+    <!-- Progress ring gradient -->
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b6b"/>
+      <stop offset="50%" style="stop-color:#ee5a24"/>
+      <stop offset="100%" style="stop-color:#ff6b6b"/>
+    </linearGradient>
+
+    <!-- Shadow filter -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="20" flood-color="rgba(0,0,0,0.4)"/>
+    </filter>
+
+    <!-- Glow filter -->
+    <filter id="ringGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- macOS icon mask -->
+    <clipPath id="iconMask">
+      <rect x="0" y="0" width="1024" height="1024" rx="228" ry="228"/>
+    </clipPath>
+  </defs>
+
+  <!-- Clip to macOS rounded icon shape -->
+  <g clip-path="url(#iconMask)">
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="url(#bgGrad)"/>
+
+  <!-- Subtle background pattern dots -->
+  <g opacity="0.03">
+    <circle cx="200" cy="200" r="4" fill="white"/>
+    <circle cx="400" cy="150" r="3" fill="white"/>
+    <circle cx="600" cy="250" r="3" fill="white"/>
+    <circle cx="800" cy="180" r="4" fill="white"/>
+    <circle cx="150" cy="500" r="3" fill="white"/>
+    <circle cx="850" cy="450" r="3" fill="white"/>
+    <circle cx="300" cy="800" r="4" fill="white"/>
+    <circle cx="700" cy="850" r="3" fill="white"/>
+  </g>
+
+  <!-- Ambient glow -->
+  <circle cx="512" cy="512" r="350" fill="url(#glowGrad)"/>
+
+  <!-- Timer ring (background) -->
+  <circle cx="512" cy="512" r="310" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="14"/>
+
+  <!-- Timer ring (progress - 75% complete) -->
+  <circle cx="512" cy="512" r="310"
+          fill="none"
+          stroke="url(#ringGrad)"
+          stroke-width="14"
+          stroke-linecap="round"
+          stroke-dasharray="1948"
+          stroke-dashoffset="487"
+          transform="rotate(-90 512 512)"
+          filter="url(#ringGlow)"
+          opacity="0.9"/>
+
+  <!-- Tomato body -->
+  <g filter="url(#shadow)">
+    <ellipse cx="512" cy="532" rx="215" ry="215" fill="url(#tomatoGrad)"/>
+  </g>
+
+  <!-- Tomato subtle segments -->
+  <g opacity="0.08">
+    <path d="M512 317 Q480 532 512 747" fill="none" stroke="white" stroke-width="2"/>
+    <path d="M512 317 Q544 532 512 747" fill="none" stroke="white" stroke-width="2"/>
+    <path d="M350 420 Q512 490 674 420" fill="none" stroke="white" stroke-width="1.5"/>
+    <path d="M350 640 Q512 570 674 640" fill="none" stroke="white" stroke-width="1.5"/>
+  </g>
+
+  <!-- Tomato highlight -->
+  <ellipse cx="512" cy="532" rx="215" ry="215" fill="url(#tomatoHighlight)"/>
+
+  <!-- Stem -->
+  <rect x="503" y="295" width="18" height="55" rx="9" fill="url(#stemGrad)"/>
+
+  <!-- Leaf (left) -->
+  <path d="M510 325 Q460 285 430 305 Q450 325 510 330" fill="url(#leafGrad)"/>
+
+  <!-- Leaf (right) -->
+  <path d="M520 323 Q560 275 590 290 Q575 315 520 328" fill="url(#leafGrad)"/>
+
+  <!-- Clock hands (minute) -->
+  <line x1="512" y1="532" x2="512" y2="412"
+        stroke="rgba(255,255,255,0.9)" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Clock hands (hour) -->
+  <line x1="512" y1="532" x2="580" y2="482"
+        stroke="rgba(255,255,255,0.9)" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Clock center dot -->
+  <circle cx="512" cy="532" r="10" fill="white" opacity="0.95"/>
+
+  <!-- Subtle tick marks -->
+  <g stroke="rgba(255,255,255,0.3)" stroke-width="3" stroke-linecap="round">
+    <!-- 12 o'clock -->
+    <line x1="512" y1="342" x2="512" y2="362"/>
+    <!-- 3 o'clock -->
+    <line x1="702" y1="532" x2="682" y2="532"/>
+    <!-- 6 o'clock -->
+    <line x1="512" y1="722" x2="512" y2="702"/>
+    <!-- 9 o'clock -->
+    <line x1="322" y1="532" x2="342" y2="532"/>
+  </g>
+
+  <!-- Progress ring end dot -->
+  <circle cx="512" cy="202" r="10" fill="#ff6b6b" filter="url(#ringGlow)"/>
+  </g>
+</svg>

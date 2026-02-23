@@ -1,0 +1,112 @@
+name: Pomodoro
+
+options:
+  bundleIdPrefix: com.kochi
+  deploymentTarget:
+    macOS: "14.0"
+  minimumXcodeGenVersion: "2.30"
+  generateEmptyDirectories: true
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    DEVELOPMENT_TEAM: ""
+
+targets:
+
+  # ──────────────────────────────
+  # Main Application
+  # ──────────────────────────────
+  Pomodoro:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+
+    sources:
+      - path: Pomodoro
+        excludes:
+          - "Resources/**"
+      - path: Shared
+      - path: Pomodoro/Resources/Assets.xcassets
+        buildPhase: resources
+
+    preBuildScripts: []
+
+    postBuildScripts:
+      - name: "Copy Web Resources"
+        script: |
+          WEB_SRC="${SRCROOT}/Pomodoro/Resources/Web"
+          WEB_DST="${BUILT_PRODUCTS_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Web"
+          mkdir -p "${WEB_DST}"
+          cp -R "${WEB_SRC}/" "${WEB_DST}/"
+          echo "Copied Web resources to ${WEB_DST}"
+        basedOnDependencyAnalysis: false
+
+    info:
+      path: Pomodoro/Info.plist
+
+    entitlements:
+      path: Pomodoro/Pomodoro.entitlements
+
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kochi.pomodoro
+        PRODUCT_NAME: Pomodoro
+        INFOPLIST_FILE: Pomodoro/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Pomodoro/Pomodoro.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        COMBINE_HIDPI_IMAGES: true
+        LD_RUNPATH_SEARCH_PATHS:
+          - "$(inherited)"
+          - "@executable_path/../Frameworks"
+
+    dependencies:
+      - target: PomodoroWidgetExtension
+
+  # ──────────────────────────────
+  # Widget Extension
+  # ──────────────────────────────
+  PomodoroWidgetExtension:
+    type: app-extension
+    platform: macOS
+    deploymentTarget: "14.0"
+
+    sources:
+      - path: PomodoroWidget
+        excludes:
+          - "Resources/**"
+      - path: Shared
+      - path: PomodoroWidget/Resources/Assets.xcassets
+        buildPhase: resources
+
+    info:
+      path: PomodoroWidget/Info.plist
+
+    entitlements:
+      path: PomodoroWidget/PomodoroWidgetExtension.entitlements
+
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kochi.pomodoro.widget
+        PRODUCT_NAME: PomodoroWidgetExtension
+        INFOPLIST_FILE: PomodoroWidget/Info.plist
+        CODE_SIGN_ENTITLEMENTS: PomodoroWidget/PomodoroWidgetExtension.entitlements
+        LD_RUNPATH_SEARCH_PATHS:
+          - "$(inherited)"
+          - "@executable_path/../Frameworks"
+          - "@executable_path/../../../../Frameworks"
+
+schemes:
+  Pomodoro:
+    build:
+      targets:
+        Pomodoro: all
+        PomodoroWidgetExtension: all
+    run:
+      config: Debug
+    profile:
+      config: Release
+    archive:
+      config: Release
