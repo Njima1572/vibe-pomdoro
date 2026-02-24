@@ -23,6 +23,7 @@
 		7162D1F9093F1DE1D4439015 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F57DA69234CBBDB1CBB100FC /* Assets.xcassets */; };
 		90ADE2F9406D32DC2968546A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A45C78AF4AAB90CB3F5023F9 /* Assets.xcassets */; };
 		A2C7A2FB9632A221691EDD6D /* PomodoroTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D53C36CD0D7B8DC9F356156 /* PomodoroTimer.swift */; };
+		CA63A0DFAAA6B46CADCBFB12 /* CalendarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E9E017DC6E3075F54DA41CB /* CalendarManager.swift */; };
 		D4D376E209ACFD23E4FD6BAF /* PomodoroWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06F5BE754BEBB7878CC9B3D8 /* PomodoroWidget.swift */; };
 		D6F8054CA17B3AF3A56DD6BC /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0A5531BB6EE15B6FF64AD02 /* Constants.swift */; };
 		E0FC4C40FF44D22D650F893F /* PomodoroApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89720243547C2AC7DE9E92D8 /* PomodoroApp.swift */; };
@@ -63,6 +64,7 @@
 		5636A0F2DBB967E9BFE0EC96 /* PhaseOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhaseOverlayView.swift; sourceTree = "<group>"; };
 		63C3248B9FAB5C802C03D8BA /* Pomodoro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pomodoro.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6E4D87BECE5F8BF7F93D41F1 /* TunnelManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelManager.swift; sourceTree = "<group>"; };
+		6E9E017DC6E3075F54DA41CB /* CalendarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarManager.swift; sourceTree = "<group>"; };
 		84380FFFBB8545FC51B6D92E /* HTTPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPServer.swift; sourceTree = "<group>"; };
 		84ECF12BECCA8F8B62DA73BD /* PomodoroWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PomodoroWidgetExtension.entitlements; sourceTree = "<group>"; };
 		89720243547C2AC7DE9E92D8 /* PomodoroApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroApp.swift; sourceTree = "<group>"; };
@@ -81,6 +83,7 @@
 		01BE7198631005F41E11E6E9 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				6E9E017DC6E3075F54DA41CB /* CalendarManager.swift */,
 				982C791B987E5CD97647ABBC /* HotkeyManager.swift */,
 				30A2BAB2BB1142ADF79A05AF /* NetworkUtils.swift */,
 				0D53C36CD0D7B8DC9F356156 /* PomodoroTimer.swift */,
@@ -315,6 +318,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA63A0DFAAA6B46CADCBFB12 /* CalendarManager.swift in Sources */,
 				D6F8054CA17B3AF3A56DD6BC /* Constants.swift in Sources */,
 				627668B46FFA96A117B6936A /* FloatingTimerPanel.swift in Sources */,
 				2BAB4E835F146739B188FEC9 /* HTTPServer.swift in Sources */,

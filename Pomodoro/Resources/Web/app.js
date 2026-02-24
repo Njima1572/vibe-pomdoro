@@ -88,7 +88,8 @@ let config = {
     play_sound_alert: true,
     show_notification_alert: true,
     show_full_screen_alert: true,
-    global_shortcuts_enabled: true
+    global_shortcuts_enabled: true,
+    add_to_calendar: false
 };
 
 let ws = null;
@@ -135,6 +136,7 @@ const elements = {
     showNotificationAlert: $('showNotificationAlert'),
     showFullScreenAlert: $('showFullScreenAlert'),
     globalShortcutsEnabled: $('globalShortcutsEnabled'),
+    addToCalendar: $('addToCalendar'),
     // Settings values
     workDurationValue: $('workDurationValue'),
     shortBreakValue: $('shortBreakValue'),
@@ -271,7 +273,8 @@ function updateConfig(newConfig) {
         play_sound_alert: newConfig.play_sound_alert ?? newConfig.playSoundAlert ?? true,
         show_notification_alert: newConfig.show_notification_alert ?? newConfig.showNotificationAlert ?? true,
         show_full_screen_alert: newConfig.show_full_screen_alert ?? newConfig.showFullScreenAlert ?? true,
-        global_shortcuts_enabled: newConfig.global_shortcuts_enabled ?? newConfig.globalShortcutsEnabled ?? true
+        global_shortcuts_enabled: newConfig.global_shortcuts_enabled ?? newConfig.globalShortcutsEnabled ?? true,
+        add_to_calendar: newConfig.add_to_calendar ?? newConfig.addToCalendar ?? false
     };
 
     // Update settings UI
@@ -285,6 +288,7 @@ function updateConfig(newConfig) {
     elements.showNotificationAlert.checked = config.show_notification_alert;
     elements.showFullScreenAlert.checked = config.show_full_screen_alert;
     elements.globalShortcutsEnabled.checked = config.global_shortcuts_enabled;
+    elements.addToCalendar.checked = config.add_to_calendar;
     updateSettingsValues();
 }
 
@@ -441,7 +445,8 @@ function applySettings() {
         play_sound_alert: elements.playSoundAlert.checked,
         show_notification_alert: elements.showNotificationAlert.checked,
         show_full_screen_alert: elements.showFullScreenAlert.checked,
-        global_shortcuts_enabled: elements.globalShortcutsEnabled.checked
+        global_shortcuts_enabled: elements.globalShortcutsEnabled.checked,
+        add_to_calendar: elements.addToCalendar.checked
     };
 
     sendAction('updateSettings', { settings: newConfig });

@@ -147,6 +147,16 @@ class PomodoroTimerManager: NSObject, ObservableObject, UNUserNotificationCenter
         playCompletionAlert()
         sendPhaseCompletionNotification()
         showFullScreenOverlay(completedPhase: completedPhase, completedPomodoros: count)
+
+        // Log completed work sessions to calendar
+        if completedPhase == .work && configuration.addToCalendar {
+            CalendarManager.shared.logSession(
+                taskTitle: taskTitle.isEmpty ? nil : taskTitle,
+                duration: configuration.workDuration,
+                sessionNumber: count
+            )
+        }
+
         moveToNextPhase(deferAutoStart: willShowOverlay)
     }
 

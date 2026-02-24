@@ -101,6 +101,7 @@ struct TimerConfiguration: Codable, Sendable, Equatable {
     var showNotificationAlert: Bool
     var showFullScreenAlert: Bool
     var globalShortcutsEnabled: Bool
+    var addToCalendar: Bool
 
     static var `default`: TimerConfiguration {
         TimerConfiguration(
@@ -113,14 +114,16 @@ struct TimerConfiguration: Codable, Sendable, Equatable {
             playSoundAlert: true,
             showNotificationAlert: true,
             showFullScreenAlert: true,
-            globalShortcutsEnabled: true
+            globalShortcutsEnabled: true,
+            addToCalendar: false
         )
     }
 
     init(workDuration: Int, shortBreakDuration: Int, longBreakDuration: Int,
          pomodorosUntilLongBreak: Int, autoStartBreaks: Bool, autoStartPomodoros: Bool,
          playSoundAlert: Bool = true, showNotificationAlert: Bool = true,
-         showFullScreenAlert: Bool = true, globalShortcutsEnabled: Bool = true) {
+         showFullScreenAlert: Bool = true, globalShortcutsEnabled: Bool = true,
+         addToCalendar: Bool = false) {
         self.workDuration = workDuration
         self.shortBreakDuration = shortBreakDuration
         self.longBreakDuration = longBreakDuration
@@ -131,6 +134,7 @@ struct TimerConfiguration: Codable, Sendable, Equatable {
         self.showNotificationAlert = showNotificationAlert
         self.showFullScreenAlert = showFullScreenAlert
         self.globalShortcutsEnabled = globalShortcutsEnabled
+        self.addToCalendar = addToCalendar
     }
 
     // Provide defaults for new fields so existing saved configs don't fail to decode
@@ -146,6 +150,7 @@ struct TimerConfiguration: Codable, Sendable, Equatable {
         showNotificationAlert = try container.decodeIfPresent(Bool.self, forKey: .showNotificationAlert) ?? true
         showFullScreenAlert = try container.decodeIfPresent(Bool.self, forKey: .showFullScreenAlert) ?? true
         globalShortcutsEnabled = try container.decodeIfPresent(Bool.self, forKey: .globalShortcutsEnabled) ?? true
+        addToCalendar = try container.decodeIfPresent(Bool.self, forKey: .addToCalendar) ?? false
     }
 
     var jsonString: String {

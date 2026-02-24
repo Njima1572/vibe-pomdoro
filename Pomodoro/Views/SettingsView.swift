@@ -13,6 +13,7 @@ struct SettingsView: View {
     @State private var showNotificationAlert: Bool
     @State private var showFullScreenAlert: Bool
     @State private var globalShortcutsEnabled: Bool
+    @State private var addToCalendar: Bool
 
     init(timerManager: PomodoroTimerManager) {
         self.timerManager = timerManager
@@ -27,6 +28,7 @@ struct SettingsView: View {
         _showNotificationAlert = State(initialValue: config.showNotificationAlert)
         _showFullScreenAlert = State(initialValue: config.showFullScreenAlert)
         _globalShortcutsEnabled = State(initialValue: config.globalShortcutsEnabled)
+        _addToCalendar = State(initialValue: config.addToCalendar)
     }
 
     var body: some View {
@@ -118,6 +120,20 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                     }
                 }
+
+                Section("Integrations") {
+                    Toggle("Add sessions to Calendar", isOn: $addToCalendar)
+                        .onChange(of: addToCalendar) { _, enabled in
+                            if enabled {
+                                Task {
+                                    let granted = await CalendarManager.shared.requestAccess()
+                                    if !granted {
+                                        await MainActor.run { addToCalendar = false }
+                                    }
+                                }
+                            }
+                        }
+                }
             }
             .formStyle(.grouped)
 
@@ -180,7 +196,8 @@ struct SettingsView: View {
             playSoundAlert: playSoundAlert,
             showNotificationAlert: showNotificationAlert,
             showFullScreenAlert: showFullScreenAlert,
-            globalShortcutsEnabled: globalShortcutsEnabled
+            globalShortcutsEnabled: globalShortcutsEnabled,
+            addToCalendar: addToCalendar
         )
     }
 
