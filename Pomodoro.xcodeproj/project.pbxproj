@@ -11,6 +11,7 @@
 		0992EB9230EB16EC2CE8C1BF /* PhaseOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5636A0F2DBB967E9BFE0EC96 /* PhaseOverlayView.swift */; };
 		12022929611DFC2A86F0C048 /* SharedTimerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5530A3D164705DE358A6C3A8 /* SharedTimerState.swift */; };
 		16E6118027581D8A63F19CF5 /* SharedTimerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5530A3D164705DE358A6C3A8 /* SharedTimerState.swift */; };
+		1B9BF1F3522602592B9EF2C7 /* TunnelManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E4D87BECE5F8BF7F93D41F1 /* TunnelManager.swift */; };
 		23C1200780A3316CD8132C4F /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0A5531BB6EE15B6FF64AD02 /* Constants.swift */; };
 		25BC269F4F189E06AF3E7459 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3021152B848965138BFA6379 /* MenuBarView.swift */; };
 		2B36EC50D6660ADBEBCEE26B /* NetworkUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30A2BAB2BB1142ADF79A05AF /* NetworkUtils.swift */; };
@@ -61,6 +62,7 @@
 		5530A3D164705DE358A6C3A8 /* SharedTimerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedTimerState.swift; sourceTree = "<group>"; };
 		5636A0F2DBB967E9BFE0EC96 /* PhaseOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhaseOverlayView.swift; sourceTree = "<group>"; };
 		63C3248B9FAB5C802C03D8BA /* Pomodoro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pomodoro.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6E4D87BECE5F8BF7F93D41F1 /* TunnelManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelManager.swift; sourceTree = "<group>"; };
 		84380FFFBB8545FC51B6D92E /* HTTPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPServer.swift; sourceTree = "<group>"; };
 		84ECF12BECCA8F8B62DA73BD /* PomodoroWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PomodoroWidgetExtension.entitlements; sourceTree = "<group>"; };
 		89720243547C2AC7DE9E92D8 /* PomodoroApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroApp.swift; sourceTree = "<group>"; };
@@ -82,6 +84,7 @@
 				982C791B987E5CD97647ABBC /* HotkeyManager.swift */,
 				30A2BAB2BB1142ADF79A05AF /* NetworkUtils.swift */,
 				0D53C36CD0D7B8DC9F356156 /* PomodoroTimer.swift */,
+				6E4D87BECE5F8BF7F93D41F1 /* TunnelManager.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -323,6 +326,7 @@
 				A2C7A2FB9632A221691EDD6D /* PomodoroTimer.swift in Sources */,
 				49D54B0231FAEDCE4FC5295F /* SettingsView.swift in Sources */,
 				12022929611DFC2A86F0C048 /* SharedTimerState.swift in Sources */,
+				1B9BF1F3522602592B9EF2C7 /* TunnelManager.swift in Sources */,
 				4897196DE956A47A9D82D863 /* WebSocketServer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

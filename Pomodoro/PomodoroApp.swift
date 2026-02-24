@@ -38,12 +38,13 @@ class SettingsWindowController: ObservableObject {
 struct PomodoroApp: App {
     @StateObject private var timerManager = PomodoroTimerManager()
     @StateObject private var settingsController = SettingsWindowController()
+    @StateObject private var tunnelManager = TunnelManager()
     private let hotkeyManager = HotkeyManager()
 
     var body: some Scene {
         // Menu Bar Extra — the main interface
         MenuBarExtra {
-            MenuBarView(timerManager: timerManager, settingsController: settingsController)
+            MenuBarView(timerManager: timerManager, settingsController: settingsController, tunnelManager: tunnelManager)
                 .onAppear {
                     syncShortcuts()
                 }
@@ -71,14 +72,15 @@ struct MenuBarLabel: View {
     @ObservedObject var timerManager: PomodoroTimerManager
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 3) {
             Image(systemName: menuBarIcon)
+                .font(.system(size: 13))
                 .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(iconColor)
 
             if timerManager.state.phase != .idle {
                 Text(timerManager.state.shortFormattedTime)
-                    .font(.system(.caption, design: .monospaced))
+                    .font(.system(size: 11, weight: .medium, design: .monospaced))
                     .monospacedDigit()
             }
         }

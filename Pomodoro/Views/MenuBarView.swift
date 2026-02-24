@@ -3,6 +3,7 @@ import SwiftUI
 struct MenuBarView: View {
     @ObservedObject var timerManager: PomodoroTimerManager
     @ObservedObject var settingsController: SettingsWindowController
+    @ObservedObject var tunnelManager: TunnelManager
 
     var body: some View {
         VStack(spacing: 0) {
@@ -10,6 +11,11 @@ struct MenuBarView: View {
             phaseHeader
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
+
+            // Task title
+            taskTitleField
+                .padding(.horizontal, 20)
+                .padding(.top, 4)
 
             // Timer ring
             timerRing
@@ -53,6 +59,14 @@ struct MenuBarView: View {
                 statusBadge
             }
         }
+    }
+
+    private var taskTitleField: some View {
+        TextField("What are you working on?", text: $timerManager.taskTitle)
+            .textFieldStyle(.plain)
+            .font(.system(size: 12, design: .rounded))
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.center)
     }
 
     private var statusBadge: some View {
@@ -206,6 +220,60 @@ struct MenuBarView: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+
+            // Tunnel toggle
+            if TunnelManager.isCloudflaredInstalled {
+                Divider()
+
+                Button {
+                    if tunnelManager.isRunning {
+                        tunnelManager.stop()
+                    } else {
+                        tunnelManager.start(localPort: AppConstants.httpPort)
+                    }
+                } label: {
+                    HStack {
+                        Label(
+                            tunnelManager.isRunning ? "Stop Tunnel" : "Share via Tunnel",
+                            systemImage: tunnelManager.isRunning ? "icloud.fill" : "icloud"
+                        )
+                        Spacer()
+                        if tunnelManager.isRunning {
+                            Circle()
+                                .fill(.green)
+                                .frame(width: 6, height: 6)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 8)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+
+                if let url = tunnelManager.tunnelURL {
+                    Button {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(url, forType: .string)
+                    } label: {
+                        HStack {
+                            Text(url)
+                                .font(.system(size: 10, design: .monospaced))
+                                .foregroundStyle(.blue)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                            Spacer()
+                            Image(systemName: "doc.on.doc")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 8)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
 
             Divider()
 

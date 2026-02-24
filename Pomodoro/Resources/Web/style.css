@@ -224,6 +224,83 @@ body {
     gap: 32px;
 }
 
+/* ---- Task Title ---- */
+
+.task-title {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-size: 18px;
+    font-weight: 500;
+    text-align: center;
+    width: 80%;
+    max-width: 400px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all var(--transition-fast);
+    font-family: inherit;
+}
+
+.task-title::placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.task-title:focus {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* ---- Keep Awake Toggle ---- */
+
+.awake-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 13px;
+    color: var(--text-muted);
+    transition: color var(--transition-fast);
+}
+
+.awake-toggle:hover {
+    color: var(--text-secondary);
+}
+
+.awake-toggle input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 36px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    position: relative;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.awake-toggle input[type="checkbox"]::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--text-secondary);
+    top: 2px;
+    left: 2px;
+    transition: transform var(--transition-fast), background var(--transition-fast);
+}
+
+.awake-toggle input[type="checkbox"]:checked {
+    background: rgba(255, 180, 50, 0.4);
+}
+
+.awake-toggle input[type="checkbox"]:checked::after {
+    transform: translateX(16px);
+    background: #ffb432;
+}
+
 /* ---- Phase Indicator ---- */
 
 .phase-indicator {
@@ -455,6 +532,7 @@ body {
 .settings-toggle {
     position: absolute;
     bottom: 24px;
+    bottom: calc(24px + env(safe-area-inset-bottom));
     right: 24px;
     width: 44px;
     height: 44px;
@@ -747,6 +825,13 @@ body {
 
     .timer-time {
         font-size: 42px;
+    }
+
+    .settings-toggle {
+        bottom: 16px;
+        bottom: calc(16px + env(safe-area-inset-bottom));
+        right: 16px;
+        right: calc(16px + env(safe-area-inset-right));
     }
 
     .settings-panel {

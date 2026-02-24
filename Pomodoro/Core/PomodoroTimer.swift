@@ -23,6 +23,12 @@ class PomodoroTimerManager: NSObject, ObservableObject, UNUserNotificationCenter
         }
     }
     @Published var dailyCompletedPomodoros: Int = 0
+    @Published var taskTitle: String = "" {
+        didSet {
+            UserDefaults.standard.set(taskTitle, forKey: "pomodoroTaskTitle")
+            broadcastState()
+        }
+    }
 
     // MARK: - Private
 
@@ -45,6 +51,7 @@ class PomodoroTimerManager: NSObject, ObservableObject, UNUserNotificationCenter
             pomodorosUntilLongBreak: Self.loadConfiguration().pomodorosUntilLongBreak
         )
         super.init()
+        self.taskTitle = UserDefaults.standard.string(forKey: "pomodoroTaskTitle") ?? ""
         UNUserNotificationCenter.current().delegate = self
         requestNotificationPermission()
         startServers()
@@ -251,6 +258,9 @@ class PomodoroTimerManager: NSObject, ObservableObject, UNUserNotificationCenter
         let webDir = findWebDirectory()
         if let webDir {
             httpServer = HTTPServer(webDirectory: webDir, webSocketPort: AppConstants.webSocketPort)
+            httpServer?.onWebSocketMessage = { [weak self] message in
+                self?.handleWebSocketMessage(message)
+            }
             httpServer?.start(port: AppConstants.httpPort)
             print("📂 Serving web files from: \(webDir.path)")
         } else {
@@ -292,14 +302,17 @@ class PomodoroTimerManager: NSObject, ObservableObject, UNUserNotificationCenter
     }
 
     func handleWebSocketMessage(_ message: String) {
+        print("🌐 Raw WS message: \(message)")
         guard let data = message.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let action = json["action"] as? String else {
+            print("⚠️ Failed to parse WS message")
             return
         }
 
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
+            print("🌐 WS action: \(action)")
             switch action {
             case "start":
                 self.start()
@@ -308,12 +321,14 @@ class PomodoroTimerManager: NSObject, ObservableObject, UNUserNotificationCenter
             case "toggle":
                 self.toggleStartPause()
             case "reset":
+                print("🚨 RESET triggered via WebSocket!")
                 self.reset()
             case "skip":
                 self.skip()
             case "getState":
                 self.broadcastState()
             case "updateSettings":
+                print("⚙️ updateSettings received via WebSocket")
                 if let settingsJson = json["settings"] as? [String: Any],
                    let settingsData = try? JSONSerialization.data(withJSONObject: settingsJson),
                    let settingsString = String(data: settingsData, encoding: .utf8),
@@ -321,17 +336,26 @@ class PomodoroTimerManager: NSObject, ObservableObject, UNUserNotificationCenter
                     self.configuration = newConfig
                     self.broadcastState()
                 }
+            case "updateTask":
+                if let title = json["title"] as? String {
+                    self.taskTitle = title
+                }
             default:
+                print("⚠️ Unknown WS action: \(action)")
                 break
             }
         }
     }
 
     func broadcastState() {
+        let escapedTitle = taskTitle
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
         let stateMessage = """
-        {"type":"state","state":\(state.jsonString),"config":\(configuration.jsonString),"daily_completed":\(dailyCompletedPomodoros)}
+        {"type":"state","state":\(state.jsonString),"config":\(configuration.jsonString),"daily_completed":\(dailyCompletedPomodoros),"task_title":"\(escapedTitle)"}
         """
         webSocketServer?.broadcast(stateMessage)
+        httpServer?.broadcastWebSocket(stateMessage)
     }
 
     func openWebUI() {

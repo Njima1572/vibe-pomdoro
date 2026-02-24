@@ -9,7 +9,12 @@
 
 const WS_PORT = '{{WS_PORT}}' !== '{{' + 'WS_PORT}}' ? '{{WS_PORT}}' : '8095';
 const WS_HOST = window.location.hostname || 'localhost';
-const WS_URL = `ws://${WS_HOST}:${WS_PORT}`;
+const isSecure = window.location.protocol === 'https:';
+// On HTTPS (tunnel): use wss:// on same host (WS upgrades through HTTP server)
+// On HTTP (local/LAN): use ws:// with dedicated WS port
+const WS_URL = isSecure
+    ? `wss://${WS_HOST}`
+    : `ws://${WS_HOST}:${WS_PORT}`;
 
 // ============================================
 // Phase Colors
@@ -89,6 +94,8 @@ let config = {
 let ws = null;
 let reconnectTimer = null;
 let localTimer = null;
+let synced = false; // True once we receive state from the native app
+let wakeLock = null; // Screen Wake Lock sentinel
 
 // ============================================
 // DOM Elements
@@ -192,9 +199,14 @@ function sendAction(action, payload = {}) {
 function updateConnectionStatus(status) {
     const el = elements.connectionStatus;
     el.className = 'connection-status ' + status;
-    el.querySelector('.status-text').textContent =
-        status === 'connected' ? 'Connected' :
-            status === 'disconnected' ? 'Disconnected' : 'Connecting...';
+    const statusText = el.querySelector('.status-text');
+    if (status === 'connected') {
+        statusText.textContent = 'Connected';
+    } else if (status === 'disconnected') {
+        statusText.textContent = `Disconnected · ${WS_URL}`;
+    } else {
+        statusText.textContent = `Connecting to ${WS_HOST}…`;
+    }
 }
 
 // ============================================
@@ -206,6 +218,15 @@ function handleServerMessage(data) {
         updateState(data.state);
         if (data.config) {
             updateConfig(data.config);
+        }
+        // Sync task title from server
+        if (data.task_title !== undefined) {
+            const taskInput = $('taskTitle');
+            if (taskInput && document.activeElement !== taskInput) {
+                taskInput.value = data.task_title;
+                localStorage.setItem('pomodoroTaskTitle', data.task_title);
+                updateDocTitle();
+            }
         }
     }
 }
@@ -223,7 +244,14 @@ function updateState(newState) {
     };
 
     const phaseChanged = prevPhase !== state.phase;
+    synced = true;
     renderState(phaseChanged);
+    updateDocTitle();
+
+    // Notify on phase transition (skip initial load)
+    if (phaseChanged && prevPhase !== 'idle' && prevPhase !== state.phase) {
+        sendPhaseNotification(prevPhase, state.phase);
+    }
 
     // Start/stop local countdown for smooth animation
     clearInterval(localTimer);
@@ -326,6 +354,10 @@ function renderPhase(phaseChanged) {
 }
 
 function renderTimer() {
+    if (!synced) {
+        elements.timerTime.textContent = '--:--';
+        return;
+    }
     const minutes = Math.floor(state.remaining_seconds / 60);
     const seconds = state.remaining_seconds % 60;
     const timeStr = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
@@ -457,26 +489,40 @@ function setupEventListeners() {
     elements.longBreakDuration.addEventListener('input', updateSettingsValues);
     elements.pomodorosUntilLongBreak.addEventListener('input', updateSettingsValues);
 
-    // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-        if (e.target.tagName === 'INPUT') return;
+    // Task title persistence + sync
+    const taskTitle = $('taskTitle');
+    taskTitle.value = localStorage.getItem('pomodoroTaskTitle') || '';
+    let taskDebounce = null;
+    taskTitle.addEventListener('input', () => {
+        localStorage.setItem('pomodoroTaskTitle', taskTitle.value);
+        updateDocTitle();
+        // Debounce WebSocket send
+        clearTimeout(taskDebounce);
+        taskDebounce = setTimeout(() => {
+            sendAction('updateTask', { title: taskTitle.value });
+        }, 500);
+    });
 
-        switch (e.code) {
-            case 'Space':
-                e.preventDefault();
-                sendAction('toggle');
-                break;
-            case 'KeyR':
-                sendAction('reset');
-                break;
-            case 'KeyS':
-                sendAction('skip');
-                break;
-            case 'Escape':
-                elements.settingsPanel.classList.remove('open');
-                break;
+    // Keep screen awake toggle
+    const keepAwake = $('keepAwake');
+    keepAwake.checked = localStorage.getItem('pomodoroKeepAwake') === 'true';
+    if (keepAwake.checked) requestWakeLock();
+    keepAwake.addEventListener('change', () => {
+        localStorage.setItem('pomodoroKeepAwake', keepAwake.checked);
+        if (keepAwake.checked) {
+            requestWakeLock();
+        } else {
+            releaseWakeLock();
         }
     });
+
+    // Re-acquire wake lock when page becomes visible again
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && keepAwake.checked) {
+            requestWakeLock();
+        }
+    });
+
 }
 
 // ============================================
@@ -488,6 +534,144 @@ function init() {
     setupEventListeners();
     renderState();
     connectWebSocket();
+    requestNotificationPermission();
+}
+
+// ============================================
+// Web Notifications (for mobile / other devices)
+// ============================================
+
+function requestNotificationPermission() {
+    if (!('Notification' in window)) {
+        console.log('ℹ️ Browser does not support notifications');
+        return;
+    }
+    if (Notification.permission === 'default') {
+        Notification.requestPermission().then(perm => {
+            console.log(`🔔 Notification permission: ${perm}`);
+        });
+    }
+}
+
+function sendPhaseNotification(fromPhase, toPhase) {
+    const fromInfo = PHASE_COLORS[fromPhase] || PHASE_COLORS.idle;
+    const toInfo = PHASE_COLORS[toPhase] || PHASE_COLORS.idle;
+
+    const title = `${fromInfo.emoji} ${fromInfo.name} complete!`;
+    const body = toPhase === 'idle'
+        ? 'All sessions done. Great work!'
+        : `Up next: ${toInfo.emoji} ${toInfo.name}`;
+
+    // Vibrate on mobile (if supported)
+    if ('vibrate' in navigator) {
+        navigator.vibrate([200, 100, 200]);
+    }
+
+    // Play a short beep via Web Audio API
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        gain.gain.value = 0.3;
+        osc.start();
+        osc.stop(ctx.currentTime + 0.15);
+    } catch (e) { /* Audio not available */ }
+
+    // Browser notification
+    if ('Notification' in window && Notification.permission === 'granted') {
+        const notification = new Notification(title, {
+            body,
+            icon: '🍅',
+            tag: 'pomodoro-phase', // Replace previous notification
+            requireInteraction: false
+        });
+        setTimeout(() => notification.close(), 5000);
+    }
+}
+
+// ============================================
+// Screen Wake Lock (keeps screen on)
+// ============================================
+
+// Tiny base64 mp4 video used as NoSleep fallback for HTTP pages
+// This is a 1-second silent blank video that loops to keep the screen awake
+const NOSLEEP_VIDEO = 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAA0NtZGF0AAACrwYF//+r3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE1NyByMjk4MCAtIEguMjY0L01QRUctNCBBVkMgY29kZWMgLSBHLksuIGdvb2dsZS5jb20vIHdpa2lAZ29vZ2xlLmNvbSAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MzoweDExMyBtZT1oZXggc3VibWU9NyBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0xIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MSA4eDhkY3Q9MSBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0tMiB0aHJlYWRzPTEgbG9va2FoZWFkX3RocmVhZHM9MSBzbGljZWRfdGhyZWFkcz0wIG5yPTAgZGVjaW1hdGU9MSBpbnRlcmxhY2VkPTAgYmx1cmF5X2NvbXBhdD0wIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz0zIGJfcHlyYW1pZD0yIGJfYWRhcHQ9MSBiX2JpYXM9MCBkaXJlY3Q9MSB3ZWlnaHRiPTEgb3Blbl9nb3A9MCB3ZWlnaHRwPTIga2V5aW50PTI1MCBrZXlpbnRfbWluPTI1IHNjZW5lY3V0PTQwIGludHJhX3JlZnJlc2g9MCByY19sb29rYWhlYWQ9NDAgcmM9Y3JmIG1idHJlZT0xIGNyZj0yMy4wIHFjb21wPTAuNjAgcXBtaW49MCBxcG1heD02OSBxcHN0ZXA9NCBpcF9yYXRpbz0xLjQwIGFxPTE6MS4wMACAAAAAD2WIhAA3//728P4FNjuZQQAAAu5BmiJsQ//+p4QAAAMAAAMAAJfcgRGhGDqzAAFEABIAbk3nv+DXCBagSS5pyn26ic6MCY3qxJCgp2leGqFIJRYqPa8u5cxqFJFqJBXTEKpSnB3CWJg3awTkTgB0iAOj2ow7aTyLz5MQEwU3+SliYJSi4CNLKQA0SD1HxHqGPyYlNZYBGO2GOU0CQtlSv0CkhSK6Bpu7Fgx1GlTNhIttqE7oXt3bG7b2YwiCbX5kbDsCFIg3OLbcvoopthQ+twtaJ1FrPRfVd/3uMFdSuSWZKt9M3qI0PKII2sQtXFpRJ6NT3C2MJaWx9XV7C8kbJcU2yZVNYnCZ6sBygtMJEwbInxaJKcT2RY0k40PAAAAAwQAADXxAU8AAAAEQZokbEM//qeEAAAwB/AAADAAB6qbCgKwAsQAtR//iFf/8AAHuAAAA9lBnkJ4hH8AAA+YAAAPAAG1QAAADIAZ5p0Qr8AADKAAAAMAA57AAAADEBnmlqQr8AADKAAAAMAA57QAAABVBmmxJqEFomUwIZ//+nhAAAAwAAJUAAAARQZ6KRRUsK/8AAA+YAAAPAAG1QAAAADEBnql0Qr8AADKAAAAMAA57AAAAMQGeq2pCvwAAMoAAAAwADntAAAAFUGarEmoQWyZTAhn//6eEAAADAAAlQAAAA=='
+
+let noSleepVideo = null;
+
+async function requestWakeLock() {
+    // Try the modern Wake Lock API first (requires HTTPS)
+    if ('wakeLock' in navigator) {
+        try {
+            wakeLock = await navigator.wakeLock.request('screen');
+            console.log('🔆 Screen wake lock acquired (API)');
+            wakeLock.addEventListener('release', () => {
+                console.log('🔅 Screen wake lock released');
+            });
+            return; // API worked, no need for fallback
+        } catch (e) {
+            console.warn('⚠️ Wake Lock API failed, using video fallback:', e.message);
+        }
+    }
+
+    // Fallback: invisible looping video (works on HTTP, iOS Safari, etc.)
+    if (!noSleepVideo) {
+        noSleepVideo = document.createElement('video');
+        noSleepVideo.setAttribute('playsinline', '');
+        noSleepVideo.setAttribute('muted', '');
+        noSleepVideo.setAttribute('loop', '');
+        noSleepVideo.style.position = 'fixed';
+        noSleepVideo.style.top = '-1px';
+        noSleepVideo.style.left = '-1px';
+        noSleepVideo.style.width = '1px';
+        noSleepVideo.style.height = '1px';
+        noSleepVideo.style.opacity = '0.01';
+        noSleepVideo.src = NOSLEEP_VIDEO;
+        document.body.appendChild(noSleepVideo);
+    }
+    try {
+        noSleepVideo.muted = true;
+        await noSleepVideo.play();
+        console.log('🔆 Screen wake lock acquired (video fallback)');
+    } catch (e) {
+        console.warn('⚠️ Video wake lock failed:', e.message);
+    }
+}
+
+function releaseWakeLock() {
+    if (wakeLock) {
+        wakeLock.release();
+        wakeLock = null;
+    }
+    if (noSleepVideo) {
+        noSleepVideo.pause();
+        console.log('🔅 Video wake lock released');
+    }
+}
+
+// ============================================
+// Document Title
+// ============================================
+
+function updateDocTitle() {
+    const task = $('taskTitle')?.value;
+    const time = synced ? formatTime(state.remaining_seconds) : '';
+    if (task && time) {
+        document.title = `${time} — ${task}`;
+    } else if (time && state.phase !== 'idle') {
+        document.title = `${time} — Pomodoro Timer`;
+    } else {
+        document.title = 'Pomodoro Timer';
+    }
+}
+
+function formatTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
 // Start when DOM is ready
