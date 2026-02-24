@@ -37,6 +37,7 @@ class PomodoroTimerManager: NSObject, ObservableObject, UNUserNotificationCenter
     private var httpServer: HTTPServer?
     private var tickSound: Bool = true
     private let overlayController = PhaseOverlayController()
+    private var pendingAutoStart = false
 
     // MARK: - Init
 
@@ -142,13 +143,14 @@ class PomodoroTimerManager: NSObject, ObservableObject, UNUserNotificationCenter
         timer = nil
         let completedPhase = state.phase
         let count = state.completedPomodoros + (completedPhase == .work ? 1 : 0)
+        let willShowOverlay = configuration.showFullScreenAlert
         playCompletionAlert()
         sendPhaseCompletionNotification()
         showFullScreenOverlay(completedPhase: completedPhase, completedPomodoros: count)
-        moveToNextPhase()
+        moveToNextPhase(deferAutoStart: willShowOverlay)
     }
 
-    private func moveToNextPhase() {
+    private func moveToNextPhase(deferAutoStart: Bool = false) {
         switch state.phase {
         case .work:
             state.completedPomodoros += 1
@@ -162,7 +164,11 @@ class PomodoroTimerManager: NSObject, ObservableObject, UNUserNotificationCenter
                 state.remainingSeconds = configuration.shortBreakDuration
                 state.totalSeconds = configuration.shortBreakDuration
             }
-            if configuration.autoStartBreaks {
+            if deferAutoStart {
+                // Will start when overlay is dismissed
+                pendingAutoStart = true
+                state.isRunning = false
+            } else if configuration.autoStartBreaks {
                 state.isRunning = true
                 scheduleTimer()
             } else {
@@ -173,7 +179,10 @@ class PomodoroTimerManager: NSObject, ObservableObject, UNUserNotificationCenter
             state.phase = .work
             state.remainingSeconds = configuration.workDuration
             state.totalSeconds = configuration.workDuration
-            if configuration.autoStartPomodoros {
+            if deferAutoStart {
+                pendingAutoStart = true
+                state.isRunning = false
+            } else if configuration.autoStartPomodoros {
                 state.isRunning = true
                 scheduleTimer()
             } else {
@@ -216,6 +225,11 @@ class PomodoroTimerManager: NSObject, ObservableObject, UNUserNotificationCenter
     /// Show a full-screen overlay that must be dismissed
     private func showFullScreenOverlay(completedPhase: TimerPhase, completedPomodoros: Int) {
         guard configuration.showFullScreenAlert else { return }
+        overlayController.onDismiss = { [weak self] in
+            guard let self, self.pendingAutoStart else { return }
+            self.pendingAutoStart = false
+            self.start()
+        }
         overlayController.show(completedPhase: completedPhase, completedPomodoros: completedPomodoros)
     }
 

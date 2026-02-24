@@ -362,12 +362,6 @@ function renderTimer() {
     const seconds = state.remaining_seconds % 60;
     const timeStr = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     elements.timerTime.textContent = timeStr;
-
-    if (state.is_running) {
-        elements.timerTime.classList.add('running');
-    } else {
-        elements.timerTime.classList.remove('running');
-    }
 }
 
 function renderProgress() {

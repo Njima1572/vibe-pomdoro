@@ -10,6 +10,9 @@ class PhaseOverlayController {
     private var monitor: Any?
     private var isDismissing = false
 
+    /// Called when the user dismisses the overlay (click Continue, Space, or Esc)
+    var onDismiss: (() -> Void)?
+
     func show(completedPhase: TimerPhase, completedPomodoros: Int) {
         // Dismiss any existing overlay
         dismiss()
@@ -71,6 +74,9 @@ class PhaseOverlayController {
         window?.contentView = nil
         window?.orderOut(nil)
         window = nil
+
+        // Notify the timer manager so it can start the next phase
+        onDismiss?()
     }
 }
 

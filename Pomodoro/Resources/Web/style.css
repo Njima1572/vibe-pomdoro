@@ -107,7 +107,6 @@ body {
     left: -100px;
     background: var(--phase-color);
     opacity: 0.15;
-    animation: float1 20s ease-in-out infinite;
 }
 
 .ambient-orb-2 {
@@ -117,7 +116,6 @@ body {
     right: -80px;
     background: var(--phase-color);
     opacity: 0.1;
-    animation: float2 25s ease-in-out infinite;
 }
 
 .ambient-orb-3 {
@@ -128,51 +126,6 @@ body {
     transform: translate(-50%, -50%);
     background: var(--phase-color);
     opacity: 0.08;
-    animation: float3 15s ease-in-out infinite;
-}
-
-@keyframes float1 {
-
-    0%,
-    100% {
-        transform: translate(0, 0) scale(1);
-    }
-
-    33% {
-        transform: translate(60px, 40px) scale(1.1);
-    }
-
-    66% {
-        transform: translate(-30px, 80px) scale(0.95);
-    }
-}
-
-@keyframes float2 {
-
-    0%,
-    100% {
-        transform: translate(0, 0) scale(1);
-    }
-
-    33% {
-        transform: translate(-50px, -30px) scale(1.05);
-    }
-
-    66% {
-        transform: translate(40px, -60px) scale(0.9);
-    }
-}
-
-@keyframes float3 {
-
-    0%,
-    100% {
-        transform: translate(-50%, -50%) scale(1);
-    }
-
-    50% {
-        transform: translate(-50%, -50%) scale(1.3);
-    }
 }
 
 /* ---- Connection Status ---- */
@@ -791,23 +744,6 @@ body {
     100% {
         transform: scale(1);
     }
-}
-
-@keyframes pulse {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.5;
-    }
-}
-
-/* Timer pulsing when running */
-.timer-time.running {
-    animation: none;
 }
 
 /* Phase transition */
